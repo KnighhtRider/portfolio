@@ -94,7 +94,7 @@ export default function Projects() {
   title: "Marketing Agency Presence",
   client: "Digital Rubix (In-house)",
   description: "Crafted bold IG presence showcasing campaigns & expertise",
-  image: "images/project4.jpg",
+  image: "images/project5.JPG",
   category: "Marketing",
   details:
     "Managed social media for Digital Rubix (an in-house marketing agency) to create a bold, dynamic online presence that reflected its creative edge and result-driven mindset. I designed content around campaign launches, client success stories, and performance marketing highlights to showcase the agency’s expertise in digital strategy, branding, and advertising.",
