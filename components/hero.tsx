@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronDown } from "lucide-react"
 import TypewriterComponent from "@/components/typewriter"
@@ -110,23 +110,19 @@ function ParticleBackground() {
         this.size = Math.random() * 3 + 1
         this.speedX = Math.random() * 1 - 0.5
         this.speedY = Math.random() * 1 - 0.5
-
-        // Neon colors
         const colors = [
-          "rgba(255, 105, 180, 0.7)", // hot pink
-          "rgba(147, 112, 219, 0.7)", // purple
-          "rgba(0, 255, 255, 0.7)", // cyan
-          "rgba(255, 255, 0, 0.7)", // yellow
-          "rgba(0, 255, 127, 0.7)", // spring green
+          "rgba(255, 105, 180, 0.7)",
+          "rgba(147, 112, 219, 0.7)",
+          "rgba(0, 255, 255, 0.7)",
+          "rgba(255, 255, 0, 0.7)",
+          "rgba(0, 255, 127, 0.7)",
         ]
-
         this.color = colors[Math.floor(Math.random() * colors.length)]
       }
 
       update() {
         this.x += this.speedX
         this.y += this.speedY
-
         if (this.x > canvas.width) this.x = 0
         else if (this.x < 0) this.x = canvas.width
         if (this.y > canvas.height) this.y = 0
@@ -134,7 +130,6 @@ function ParticleBackground() {
       }
 
       draw() {
-        if (!ctx) return
         ctx.fillStyle = this.color
         ctx.shadowBlur = 15
         ctx.shadowColor = this.color
@@ -146,41 +141,20 @@ function ParticleBackground() {
       }
     }
 
-    const init = () => {
-      for (let i = 0; i < particleCount; i++) {
-        particles.push(new Particle())
-      }
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle())
     }
 
     const animate = () => {
-      if (!ctx) return
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      for (const particle of particles) {
-        particle.update()
-        particle.draw()
-      }
-
-      // Draw connections
-      for (let a = 0; a < particles.length; a++) {
-        for (let b = a; b < particles.length; b++) {
-          const dx = particles[a].x - particles[b].x
-          const dy = particles[a].y - particles[b].y
-          const distance = Math.sqrt(dx * dx + dy * dy)
-
-          if (distance < 100) {
-            ctx.beginPath()
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - distance / 100)})`
-            ctx.lineWidth = 0.5
-            ctx.moveTo(particles[a].x, particles[a].y)
-            ctx.lineTo(particles[b].x, particles[b].y)
-            ctx.stroke()
-          }
-        }
-      }
-
+      particles.forEach((p) => {
+        p.update()
+        p.draw()
+      })
       requestAnimationFrame(animate)
     }
+
+    animate()
 
     const handleResize = () => {
       canvas.width = window.innerWidth
@@ -188,19 +162,15 @@ function ParticleBackground() {
     }
 
     window.addEventListener("resize", handleResize)
-
-    init()
-    animate()
-
-    return () => {
-      window.removeEventListener("resize", handleResize)
-    }
+    return () => window.removeEventListener("resize", handleResize)
   }, [])
 
   return <canvas ref={canvasRef} className="absolute inset-0" />
 }
 
 function FloatingSocialIcons() {
+  const [positions, setPositions] = useState<{ x: number; y: number }[]>([])
+
   const icons = [
     { icon: <Instagram className="h-full w-full" />, color: "from-purple-500 to-pink-500" },
     { icon: <Facebook className="h-full w-full" />, color: "from-blue-500 to-blue-600" },
@@ -214,6 +184,18 @@ function FloatingSocialIcons() {
     { icon: <Heart className="h-full w-full" />, color: "from-pink-500 to-red-500" },
   ]
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const generated = icons.map(() => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+      }))
+      setPositions(generated)
+    }
+  }, [])
+
+  if (positions.length === 0) return null
+
   return (
     <div className="absolute inset-0 overflow-hidden">
       {icons.map((icon, index) => (
@@ -221,18 +203,18 @@ function FloatingSocialIcons() {
           key={index}
           className="absolute w-10 h-10 md:w-12 md:h-12"
           initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: positions[index].x,
+            y: positions[index].y,
             opacity: 0.8,
           }}
           animate={{
             y: [
-              Math.random() * window.innerHeight,
+              positions[index].y,
               Math.random() * window.innerHeight,
               Math.random() * window.innerHeight,
             ],
             x: [
-              Math.random() * window.innerWidth,
+              positions[index].x,
               Math.random() * window.innerWidth,
               Math.random() * window.innerWidth,
             ],
@@ -243,14 +225,10 @@ function FloatingSocialIcons() {
             ease: "linear",
           }}
         >
-          <div className={`w-full h-full rounded-full bg-white/10 backdrop-blur-sm p-2 shadow-lg relative group`}>
+          <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm p-2 shadow-lg relative group">
             <div className="text-white w-full h-full">{icon.icon}</div>
-            <div
-              className={`absolute inset-0 rounded-full bg-gradient-to-r ${icon.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
-            ></div>
-            <div
-              className={`absolute -inset-1 rounded-full bg-gradient-to-r ${icon.color} opacity-0 blur-md group-hover:opacity-40 transition-opacity duration-300`}
-            ></div>
+            <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${icon.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}></div>
+            <div className={`absolute -inset-1 rounded-full bg-gradient-to-r ${icon.color} opacity-0 blur-md group-hover:opacity-40 transition-opacity duration-300`}></div>
           </div>
         </motion.div>
       ))}
